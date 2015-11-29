@@ -1,4 +1,10 @@
-angular.module('yourAppsName', ['ionic', 'yourAppsName.controllers'])
+angular.module('yourAppsName', [
+  'ionic',
+  'yourAppsName.controllers',
+  'yourAppsName.services',
+  'yourAppsName.filters',
+  'yourAppsName.directives'
+])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -38,7 +44,7 @@ angular.module('yourAppsName', ['ionic', 'yourAppsName.controllers'])
     })
 
   .state('app.stock', {
-    url: '/:stockticker',
+    url: '/:stockTicker',
     views: {
       'menuContent': {
         templateUrl: 'templates/stock.html',
