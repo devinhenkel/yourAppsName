@@ -14,7 +14,19 @@
   </div>
   <ion-content class="has-subheader">
 
-    <img ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1d&q=l&l=on&z=m&a=vm" style="width: 100%">
+    <div class="button-bar">
+      <a ng-click="chartViewSet(1)" ng-class="chartview == 1 ? 'active' : ''" class="button">1D</a>
+      <a ng-click="chartViewSet(2)" ng-class="chartview == 2 ? 'active' : ''" class="button">1W</a>
+      <a ng-click="chartViewSet(3)" ng-class="chartview == 3 ? 'active' : ''" class="button">1M</a>
+      <a ng-click="chartViewSet(4)" ng-class="chartview == 4 ? 'active' : ''" class="button">1Y</a>
+      <a ng-click="chartViewSet(5)" ng-class="chartview == 5 ? 'active' : ''" class="button">Max</a>
+    </div>
+
+    <img ng-if="chartview == 1" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1d&q=l&l=on&z=m&a=vm" style="width: 100%">
+    <img ng-if="chartview == 2" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=5d&q=l&l=on&z=m&a=vm" style="width: 100%">
+    <img ng-if="chartview == 3" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1m&q=l&l=on&z=m&a=vm" style="width: 100%">
+    <img ng-if="chartview == 4" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=1y&q=l&l=on&z=m&a=vm" style="width: 100%">
+    <img ng-if="chartview == 5" ng-src="http://chart.finance.yahoo.com/z?s={{ticker}}&t=my&q=l&l=on&z=m&a=vm" style="width: 100%">
 
     <div class="card">
       <div class="item item-divider">Market Data</div>
