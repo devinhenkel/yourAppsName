@@ -1,3 +1,18 @@
+/*Search Styles*/
+
+#search {
+  background-color: rgba(20,20,20,.975);
+
+}
+
+#search .search-input {
+  background-color: rgba(30,30,30,.975);
+}
+
+#search input {
+  color: #333;
+}
+
 /*News Styles*/
 
 #stock-news .icon {
@@ -230,6 +245,31 @@
 
 .no-margin {
   margin: 0px !important;
+}
+
+.font-normal {
+  font-weight: normal !important;
+
+}
+
+.border-none {
+  border: none !important;
+}
+
+.margin-auto, .margin-auto svg {
+  margin: auto !important;
+}
+
+.text-align-center {
+  text-align: center !important;
+}
+
+.text-uppercase {
+  text-transform: uppercase !important;
+}
+
+.text-capitalize {
+  text-transform: capitalize !important;
 }
 
 /* Adjustment Styles */
