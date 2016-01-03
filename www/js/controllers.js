@@ -6,8 +6,8 @@ angular.module('yourAppsName.controllers', [])
 
 }])
 
-.controller('MyStocksCtrl', ['$scope', 'myStocksArrayService', 'stockDataService', 'stockPriceCacheService',
-  function($scope, myStocksArrayService, stockDataService, stockPriceCacheService) {
+.controller('MyStocksCtrl', ['$scope', 'myStocksArrayService', 'stockDataService', 'stockPriceCacheService', 'followStockService',
+  function($scope, myStocksArrayService, stockDataService, stockPriceCacheService, followStockService) {
 
     $scope.$on("$ionicView.afterEnter", function(){
       $scope.getMyStocksData();
