@@ -4,6 +4,7 @@ angular.module('yourAppsName', [
   'nvd3',
   'nvChart',
   'cb.x2js',
+  'firebase',
   'yourAppsName.controllers',
   'yourAppsName.services',
   'yourAppsName.filters',

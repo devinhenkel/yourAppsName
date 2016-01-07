@@ -20,7 +20,7 @@ angular.module('yourAppsName.filters', [])
         }
       }
       if(elipsis) return input + '…';
-      if(!elipsis) return input;
+      if(!elipsis) return input;sis
     }
     return input;
   };
