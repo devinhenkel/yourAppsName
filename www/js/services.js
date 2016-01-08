@@ -55,14 +55,21 @@ angular.module('yourAppsName.services', [])
 
 })
 
+.factory('firebaseUserRef', function(firebaseRef){
+  var userRef = firebaseRef.child('users');
+
+  return userRef;
+})
+
+
 .factory('firebaseRef', function($firebase, FIREBASE_URL){
   var firebaseRef = new Firebase(FIREBASE_URL);
 
   return firebaseRef;
 })
 
-.factory('userService', function($rootScope, firebaseRef, modalService){
-  var login = function(user){
+.factory('userService', function($rootScope, $window, $timeout, firebaseRef, firebaseUserRef, myStocksArrayService, myStocksCacheService, notesCacheService, modalService){
+  var login = function(user, signup){
     firebaseRef.authWithPassword({
       email    : user.email,
       password : user.password
@@ -71,7 +78,19 @@ angular.module('yourAppsName.services', [])
         console.log("Login Failed!", error);
       } else {
         $rootScope.currentUser = user;
-        modalService.closeModal();
+        if(signup){
+          modalService.closeModal();
+        }
+        else {
+          myStocksCacheService.removeAll();
+          notesCacheService.removeAll();
+          modalService.closeModal();
+          loadUserData(authData);
+          $timeout(function(){
+            $window.location.reload(true);
+          }, 400);
+        }
+
         console.log("Authenticated successfully with payload:", authData);
       }
     });
@@ -85,19 +104,79 @@ angular.module('yourAppsName.services', [])
       if (error) {
         console.log("Error creating user:", error);
       } else {
-        login(user);
-        console.log("Successfully created user account with uid:", userData.uid);
+        login(user, true);
+        firebaseRef.child('emails').push(user.email);
+        firebaseUserRef.child(userData.uid).child('stocks').set(myStocksArrayService);
+        var stocksWithNotes = notesCacheService.keys();
+
+        stocksWithNotes.forEach(function(stocksWithNotes){
+          var notes = notesCacheService.get(stocksWithNotes);
+
+          notes.forEach(function(note){
+            firebaseUserRef.child(getUser().uid).child('notes').child(note.ticker).push(note);
+          });
+        });
+        console.log(stocksWithNotes);
       }
     });
   };
 
   var logout = function(){
-    $rootScope.currentUser = '';
     firebaseRef.unauth();
+    notesCacheService.removeAll();
+    myStocksCacheService.removeAll();
+    $window.location.reload(true);
+    $rootScope.currentUser = '';
   };
 
-  var getUser = function(){
-    firebaseRef.getAuth();
+  var updateStocks = function(stocks){
+    firebaseUserRef.child(getUser().uid).child('stocks').set(stocks);
+  };
+
+  var updateNotes = function(ticker, notes) {
+    firebaseUserRef.child(getUser().uid).child('notes').child(ticker).remove();
+    notes.forEach(function(note){
+      firebaseUserRef.child(getUser().uid).child('notes').child(ticker).push(note);
+    });
+  };
+
+  var loadUserData = function(authData){
+    firebaseUserRef.child(authData.uid).child('stocks').once('value', function(snapshot){
+      var stocksFromDatabase = [];
+
+      snapshot.val().forEach(function(stock) {
+        var stockToAdd = {ticker: stock.ticker};
+        stocksFromDatabase.push(stockToAdd);
+      });
+
+      myStocksCacheService.put('myStocks', stocksFromDatabase);
+    },
+    function(error){
+      console.log('firebase -> stocks: ' + error);
+    });
+
+    firebaseUserRef.child(authData.uid).child('notes').once('value', function(snapshot){
+
+      snapshot.forEach(function(stockWithNotes){
+        var notesFromDatabase = [];
+        stockWithNotes.forEach(function(note){
+          notesFromDatabase.push(note.val());
+          var cacheKey = note.child('ticker').val();
+          notesCacheService.put(cacheKey, notesFromDatabase);
+        });
+
+      });
+
+      myStocksCacheService.push('myStocks', stocksFromDatabase);
+
+    },
+    function(error){
+      console.log('firebase -> notes: ' + error);
+    });
+  };
+
+  var getUser = function() {
+    return firebaseRef.getAuth();
   };
 
   if(getUser()){
@@ -107,7 +186,10 @@ angular.module('yourAppsName.services', [])
   return {
     login: login,
     signup: signup,
-    logout: logout
+    logout: logout,
+    updateStocks: updateStocks,
+    updateNotes: updateNotes,
+    getUser: getUser
   };
 
 })
@@ -311,7 +393,7 @@ angular.module('yourAppsName.services', [])
   };
 })
 
-.factory('notesService', function(notesCacheService){
+.factory('notesService', function(notesCacheService, userService){
 
   return {
     getNotes: function(ticker){
@@ -328,12 +410,22 @@ angular.module('yourAppsName.services', [])
       }
       notesCacheService.put(ticker, stockNotes);
 
+      if(userService.getUser()){
+        var notes = notesCacheService.get(ticker);
+        userService.updateNotes(ticker, stockNotes);
+      }
+
     },
     deleteNote: function(ticker, index){
       var stockNotes = [];
       stockNotes = notesCacheService.get(ticker);
       stockNotes.splice(index, 1);
       notesCacheService.put(ticker, stockNotes);
+
+      if(userService.getUser()){
+        var notes = notesCacheService.get(ticker);
+        userService.updateNotes(ticker, stockNotes);
+      }
 
     }
   };
@@ -416,13 +508,16 @@ angular.module('yourAppsName.services', [])
 
 })
 
-.factory('followStockService', function(myStocksArrayService, myStocksCacheService){
+.factory('followStockService', function(myStocksArrayService, myStocksCacheService, userService){
 
   return {
     follow: function(ticker){
       var stockToAdd = {'ticker': ticker};
       myStocksArrayService.push(stockToAdd);
       myStocksCacheService.put('myStocks', myStocksArrayService);
+      if(userService.getUser()){
+        userService.updateStocks(myStocksArrayService);
+      }
     },
     unfollow: function(ticker){
       for (var i=0; i < myStocksArrayService.length; i++){
@@ -430,6 +525,9 @@ angular.module('yourAppsName.services', [])
           myStocksArrayService.splice(i, 1);
           myStocksCacheService.remove('myStocks');
           myStocksCacheService.put('myStocks', myStocksArrayService);
+          if(userService.getUser()){
+            userService.updateStocks(myStocksArrayService);
+          }
           break;
         }
       }
