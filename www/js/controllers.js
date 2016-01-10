@@ -72,9 +72,8 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, follo
   $scope.openWindow = function(link){
     var inAppBrowserOptions = {
       location: 'yes',
-      clearcache: 'yes',
-      closebuttoncaption: 'back',
-      toolbar: 'yes'
+      toolbar: 'yes',
+      clearcache: 'yes'
     };
     $cordovaInAppBrowser.open(link, '_blank', inAppBrowserOptions);
   };
