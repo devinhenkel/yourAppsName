@@ -73,6 +73,7 @@ function($scope, $stateParams, $window, $ionicPopup, $cordovaInAppBrowser, follo
     var inAppBrowserOptions = {
       location: 'yes',
       clearcache: 'yes',
+      closebuttoncaption: 'back',
       toolbar: 'yes'
     };
     $cordovaInAppBrowser.open(link, '_blank', inAppBrowserOptions);
